@@ -1714,7 +1714,7 @@
 
         var source,
             callbackGenerator = callbackInvalidator(),
-            candlesOfData = 200,
+            candlesOfData = 400,
             data = [];
 
         function invalidate() {
@@ -1761,6 +1761,7 @@
 
             var now = new Date();
 
+            // set parameter
             source.historicFeed.end(now)
                 .candles(candlesOfData)
                 .granularity(granularity);
@@ -2391,7 +2392,7 @@
     var dataGeneratorAdaptor = function() {
 
         var dataGenerator = fc.data.random.financial(),
-            allowedPeriods = [60 * 60 * 24],
+            allowedPeriods = [60 * 60 * 24], // day1
             candles,
             end,
             granularity,
@@ -2405,6 +2406,8 @@
             cb(null, data);
         };
 
+        // -------------
+
         dataGeneratorAdaptor.candles = function(x) {
             if (!arguments.length) {
                 return candles;
@@ -2413,6 +2416,7 @@
             return dataGeneratorAdaptor;
         };
 
+        // end datetime
         dataGeneratorAdaptor.end = function(x) {
             if (!arguments.length) {
                 return end;
@@ -2421,6 +2425,7 @@
             return dataGeneratorAdaptor;
         };
 
+        // 粒状(性) Unit sec
         dataGeneratorAdaptor.granularity = function(x) {
             if (!arguments.length) {
                 return granularity;
@@ -2433,6 +2438,7 @@
             return dataGeneratorAdaptor;
         };
 
+        // Product
         dataGeneratorAdaptor.product = function(x) {
             if (!arguments.length) {
                 return product;
@@ -3056,45 +3062,45 @@
         </div> \
     </div>';
 
-        // no bootstrap
-        var appTemplate = '<div class="container-fluid"> \
-        <div id="notifications"></div> \
-        <div id="loading-status-message"></div> \
-        <div class="head-menu head-row"> \
-            <div class="head-sub-row"> \
-            </div> \
-        </div> \
-        <div class="primary-row"> \
-            <div id="charts"> \
-                <div id="charts-container"> \
-                    <svg id="primary-container"></svg> \
-                    <div id="secondaries-container"></div> \
-                    <div class="x-axis-row"> \
-                        <svg id="x-axis-container"></svg> \
-                    </div> \
-                    <div id="navbar-row"> \
-                        <svg id="navbar-container"></svg> \
-                        <svg id="navbar-reset"></svg> \
-                    </div> \
-                </div> \
-                <div id="overlay"> \
-                    <div id="overlay-primary-container"> \
-                        <div id="overlay-primary-head"> \
-                            <div id="legend"> \
-                                <svg id="tooltip"></svg> \
-                            </div> \
-                        </div> \
-                        <div id="overlay-primary-bottom"> \
-                            <div class="edit-indicator-container"></div> \
-                        </div> \
-                    </div> \
-                    <div id="overlay-secondaries-container"></div> \
-                    <div class="x-axis-row"></div> \
-                    <div id="overlay-navbar-row"></div> \
-                </div> \
-            </div> \
-        </div> \
-    </div>';
+        // // no bootstrap
+        // var appTemplate = '<div class="container-fluid"> \
+        //     <div id="notifications"></div> \
+        //     <div id="loading-status-message"></div> \
+        //     <div class="head-menu head-row"> \
+        //         <div class="head-sub-row"> \
+        //         </div> \
+        //     </div> \
+        //     <div class="row primary-row"> \
+        //         <div id="charts"> \
+        //             <div id="charts-container"> \
+        //                 <svg id="primary-container"></svg> \
+        //                 <div id="secondaries-container"></div> \
+        //                 <div class="x-axis-row"> \
+        //                     <svg id="x-axis-container"></svg> \
+        //                 </div> \
+        //                 <div id="navbar-row"> \
+        //                     <svg id="navbar-container"></svg> \
+        //                     <svg id="navbar-reset"></svg> \
+        //                 </div> \
+        //             </div> \
+        //             <div id="overlay"> \
+        //                 <div id="overlay-primary-container"> \
+        //                     <div id="overlay-primary-head"> \
+        //                         <div id="legend"> \
+        //                             <svg id="tooltip"></svg> \
+        //                         </div> \
+        //                     </div> \
+        //                     <div id="overlay-primary-bottom"> \
+        //                         <div class="edit-indicator-container"></div> \
+        //                     </div> \
+        //                 </div> \
+        //                 <div id="overlay-secondaries-container"></div> \
+        //                 <div class="x-axis-row"></div> \
+        //                 <div id="overlay-navbar-row"></div> \
+        //             </div> \
+        //         </div> \
+        //     </div> \
+        // </div>';
 
         var app = {};
 
@@ -3113,7 +3119,10 @@
         var selectors;
         var toastNotifications;
 
-        var displaySelector = false;
+        // var selectedProductString;
+        // var afterAddGdaxProductsCallBack;
+
+        var displaySelector = true;
         var fetchGdaxProducts = false;
 
         var proportionOfDataToDisplayByDefault = 0.2;
@@ -3177,6 +3186,7 @@
             model.notificationMessages.messages.unshift(message(message$$1));
         }
 
+        //
         function onViewChange(domain) {
             var viewDomain = [domain[0], domain[1]];
             model.charts.primary.viewDomain = viewDomain;
@@ -3210,6 +3220,7 @@
             render();
         }
 
+        // mouse pointer for legend
         function onCrosshairChange(dataPoint) {
             model.charts.legend.data = dataPoint;
             render();
@@ -3404,6 +3415,7 @@
             model.headMenu.primaryIndicators = model.charts.primary.indicators;
         }
 
+        // secondary chart
         function updateSecondaryChartModels() {
             model.charts.secondary.indicators = model.selectors.indicatorSelector.options.filter(function(option) {
                 return option.isSelected && !option.isPrimary;
@@ -3413,6 +3425,7 @@
                 return indicator;
             }));
 
+            //
             model.overlay.secondaryIndicators = model.charts.secondary.indicators;
             model.headMenu.secondaryIndicators = model.charts.secondary.indicators;
         }
@@ -3443,6 +3456,7 @@
         }
 
         // proc for receive GDAX products json file
+        var gdaxProducts;
         function addGdaxProducts(error, bitcoinProducts) {
             if (error) {
                 var statusText = error.statusText || 'Unknown reason.';
@@ -3456,6 +3470,10 @@
 
                 // data format
                 var formattedProducts = formatGdaxProducts(bitcoinProducts, model.sources.bitcoin, defaultPeriods, productPeriodOverrides);
+
+                // memory GdaxProducts
+                gdaxProducts = formattedProducts;
+
                 // add to headMenu
                 model.headMenu.products = model.headMenu.products.concat(formattedProducts);
                 // add to overlay
@@ -3544,6 +3562,9 @@
             });
 
             updatePrimaryChartIndicators();
+            // updateSecondaryCharts();
+            // render();
+
             if (!firstRender) {
                 updateSecondaryCharts();
                 render();
@@ -3565,7 +3586,7 @@
             if (displaySelector) {
                 appContainer.html(appTemplateWithSelector);
             } else {
-                appContainer.html(appTemplate);
+                appContainer.html(appTemplateWithSelector);
             }
 
             var chartsAndOverlayContainer = appContainer.select('#charts');
@@ -3602,6 +3623,7 @@
 
             updateLayout();
             initialiseResize();
+
             _dataInterface(model.headMenu.selectedPeriod.seconds, model.headMenu.selectedProduct);
 
             if (fetchGdaxProducts) {
@@ -3647,13 +3669,64 @@
             return app;
         };
 
+        // temporaly not work
+        // app.displaySelector = function(x) {
+        //     if (!arguments.length) {
+        //         // todo:error
+        //         return app;
+        //     }
+        //     displaySelector = x;
+        //     return app;
+        // };
+
         //
-        app.displaySelector = function(x) {
-            if (!arguments.length) {
+        app.changeProduct = function(productString) {
+
+            var product;
+
+            var existsInOverlayProducts = model.overlay.products.some(function(p) {
+                product = p;
+                return p.id === productString;
+            });
+            if (!existsInOverlayProducts) {
+                // todo:error
                 return app;
             }
-            displaySelector = x;
+
+            var existsInHeadMenuProducts = model.headMenu.products.some(function(p) {
+                product = p;
+                return p.id === productString;
+            });
+            if (!existsInHeadMenuProducts) {
+                return app;
+            }
+
+            changeProduct(product);
+
+            if (!firstRender) {
+                render();
+            }
+
+            // selectedProductString = productString;
+            // afterAddGdaxProductsCallBack = function() {
+
+            //     var product;
+            //     var existsInHeadMenuProducts = model.headMenu.products.some(function(p) {
+            //         product = p;
+            //         return p.id === selectedProductString;
+            //     });
+            //     if (existsInHeadMenuProducts) {
+            //         changeProduct(product);
+            //     }
+            // };
+
             return app;
+        };
+
+        app.getGdaxProducts = function() {
+
+            return gdaxProducts;
+
         };
 
 
