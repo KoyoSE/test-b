@@ -135,7 +135,8 @@
         var dataTimeExtent = discontinuityProvider.distance(sortedDataExtent[0], sortedDataExtent[1]);
         var scaledDomainTimeDifference = ratio * discontinuityProvider.distance(sortedViewDomainExtent[0], sortedViewDomainExtent[1]);
         var scaledLiveDataDomain = scaledDomainTimeDifference < dataTimeExtent ?
-          [discontinuityProvider.offset(sortedDataExtent[1], -scaledDomainTimeDifference), sortedDataExtent[1]] : sortedDataExtent;
+              [discontinuityProvider.offset(sortedDataExtent[1], -scaledDomainTimeDifference), sortedDataExtent[1]] :
+              sortedDataExtent;
         return scaledLiveDataDomain;
     };
 
@@ -1701,6 +1702,7 @@
     };
 
     var dataInterface = function() {
+
         var dispatch = d3.dispatch(
             event.newTrade,
             event.historicDataLoaded,
@@ -1747,7 +1749,10 @@
             }
         }
 
+        // ----
+
         function dataInterface(granularity, product) {
+            // ?
             invalidate();
 
             if (arguments.length === 2) {
@@ -1778,6 +1783,8 @@
                 }
             }));
         }
+
+        // ----
 
         dataInterface.candlesOfData = function(x) {
             if (!arguments.length) {
@@ -2392,7 +2399,7 @@
     var dataGeneratorAdaptor = function() {
 
         var dataGenerator = fc.data.random.financial(),
-            allowedPeriods = [60 * 60 * 24], // day1
+            // allowedPeriods = [60 * 60 * 24], // day1
             candles,
             end,
             granularity,
@@ -2430,10 +2437,10 @@
             if (!arguments.length) {
                 return granularity;
             }
-            if (allowedPeriods.indexOf(x) === -1) {
-                throw new Error('Granularity of ' + x + ' is not supported. '
-                 + 'Random Financial Data Generator only supports daily data.');
-            }
+            // if (allowedPeriods.indexOf(x) === -1) {
+            //     throw new Error('Granularity of ' + x + ' is not supported. '
+            //      + 'Random Financial Data Generator only supports daily data.');
+            // }
             granularity = x;
             return dataGeneratorAdaptor;
         };
@@ -2606,6 +2613,7 @@
             var startDate = d3.time.second.offset(historicFeed.end(), -candles * granularity);
             historicFeed.start(startDate)
                 .collapse(allowedPeriods.get(granularity));
+
             historicFeed(function(err, data) {
                 if (err) {
                     cb(err);
@@ -2628,9 +2636,9 @@
             if (!arguments.length) {
                 return granularity;
             }
-            if (!allowedPeriods.has(x)) {
-                throw new Error('Granularity of ' + x + ' is not supported.');
-            }
+            // if (!allowedPeriods.has(x)) {
+            //     throw new Error('Granularity of ' + x + ' is not supported.');
+            // }
             granularity = x;
             return quandlAdaptor;
         };
@@ -2778,7 +2786,7 @@
         }
         // periods
         var periods = initialisePeriods();
-
+        var periodsAry = [periods.week1, periods.day1, periods.hour1, periods.minute5, periods.minute1];
 
         // default sources
         function initialiseSources() {
@@ -2812,9 +2820,11 @@
         function initialiseProducts() {
             return {
                 // for demo
-                generated: model.data.product('Data Generator', 'Data Generator', [periods.day1], sources.generated, '.3s'),
+                // generated: model.data.product('Data Generator', 'Data Generator', [periods.day1], sources.generated, '.3s'),
+                generated: model.data.product('Data Generator', 'Data Generator', periodsAry, sources.generated, '.3s'),
                 // for quandl Stock data
-                quandl: model.data.product('GOOG', 'GOOG', [periods.day1], sources.quandl, '.3s')
+                quandl: model.data.product('GOOG', 'GOOG', periodsAry, sources.quandl, '.3s')
+                // quandl: model.data.product('GOOG', 'GOOG', [periods.day1], sources.quandl, '.3s')
             };
         }
         // products
@@ -2952,7 +2962,8 @@
         function initialiseCharts() {
 
             // default settings
-            var defPeriod = periods.day1;
+            // var defPeriod = periods.day1;
+            var defPeriod = periods.minute1;
             var defGenerated = products.generated;
             var defProvider = products.generated.source.discontinuityProvider;
 
@@ -2974,6 +2985,7 @@
         return {
             data: [],
             periods: periods,
+            periodsAry: periodsAry,
             sources: sources,
             selectors: initialiseSelectors(),
             charts: initialiseCharts(),
@@ -3246,11 +3258,13 @@
             var data$$1 = model.charts.primary.data;
             var dataDomain = fc.util.extent()
                 .fields(['date'])(data$$1);
+
             var navTimeDomain = util.domain.moveToLatest(
                 model.charts.primary.discontinuityProvider,
                 dataDomain,
                 dataDomain,
-                proportionOfDataToDisplayByDefault);
+                proportionOfDataToDisplayByDefault); // todo: defaultでなくNavチャートのスライダーで変更した値をセットする。
+
             onViewChange(navTimeDomain);
         }
 
@@ -3266,6 +3280,8 @@
                 .classed('hidden', !obscure)
                 .html(error ? errorMessage : spinner);
         }
+
+        // --------------
 
         function updateModelData(data$$1) {
             model.data = data$$1;
@@ -3293,17 +3309,28 @@
             updateDiscontinuityProvider(product.source);
         }
 
+        // todo:period
         function updateModelSelectedPeriod(period) {
             model.headMenu.selectedPeriod = period;
             model.charts.xAxis.period = period;
             model.charts.legend.period = period;
         }
 
-        function changeProduct(product) {
+        // --------------
+
+        function changeProduct(product, period) {
             loading(true);
             updateModelSelectedProduct(product);
-            updateModelSelectedPeriod(product.periods[0]);
-            _dataInterface(product.periods[0].seconds, product);
+
+            // todo:Period 現在の選択されている periodをセットする。
+            let p;
+            if (!period) {
+                p = product.periods[0];
+            } else {
+                p = model.periods[period];
+            }
+            updateModelSelectedPeriod(p);
+            _dataInterface(p.seconds, product);
         }
 
         function initialiseCharts() {
@@ -3316,6 +3343,8 @@
             return menu.navigationReset()
                 .on(event.resetToLatest, resetToLatest);
         }
+
+        // --------------
 
         function initialiseDataInterface() {
             return dataInterface()
@@ -3363,6 +3392,7 @@
                 .on(event.streamingFeedClose, onStreamingFeedCloseOrError);
         }
 
+        // head menu 初期化
         function initialiseHeadMenu() {
             return menu.head()
                 .on(event.dataProductChange, function(product) {
@@ -3455,6 +3485,9 @@
                 .on(event.notificationClose, onNotificationClose);
         }
 
+        // -----------
+        // GDAX (bitcoin)
+        // -----------
         // proc for receive GDAX products json file
         var gdaxProducts;
         function addGdaxProducts(error, bitcoinProducts) {
@@ -3464,9 +3497,10 @@
                 model.notificationMessages.messages.unshift(message(message$$1));
             } else {
                 // parameter for format
-                var defaultPeriods = [model.periods.hour1, model.periods.day1];
+                // var defaultPeriods = [model.periods.hour1, model.periods.day1];
+                var defaultPeriods = model.periodsAry;
                 var productPeriodOverrides = d3.map();
-                productPeriodOverrides.set('BTC-USD', [model.periods.minute1, model.periods.minute5, model.periods.hour1, model.periods.day1]);
+                // productPeriodOverrides.set('BTC-USD', [model.periods.minute1, model.periods.minute5, model.periods.hour1, model.periods.day1]);
 
                 // data format
                 var formattedProducts = formatGdaxProducts(bitcoinProducts, model.sources.bitcoin, defaultPeriods, productPeriodOverrides);
@@ -3494,13 +3528,17 @@
             return app;
         };
 
+        // -----------
+        // Quandle (stock)
+        // -----------
         // Change Quandle stock product
         // If no exist product Add
         // default : 'GOOG'
         // execute after app.run()
         // argument  ticker  ex : 'MSFT'
-        app.changeQuandlProduct = function(productString) {
-            var product = data.product(productString, productString, [model.periods.day1], model.sources.quandl, '.3s');
+        app.changeQuandlProduct = function(productString, periodString) {
+            var product = data.product(productString, productString, model.periodsAry, model.sources.quandl, '.3s');
+            // var product = dataModel.product(productString, productString, [model.periods.day1], model.sources.quandl, '.3s');
 
             var existsInHeadMenuProducts = model.headMenu.products.some(function(p) { return p.id === product.id; });
             var existsInOverlayProducts = model.overlay.products.some(function(p) { return p.id === product.id; });
@@ -3513,7 +3551,7 @@
                 model.overlay.products.push(product);
             }
 
-            changeProduct(product);
+            changeProduct(product, periodString);
 
             if (!firstRender) {
                 render();
@@ -3521,8 +3559,8 @@
             return app;
         };
 
-        // set default xAxis dispay range
-        // 0 - 1
+        // set default xAxis dispay range rate
+        // x : 0 - 1
         // execute befor app.run()
         app.proportionOfDataToDisplayByDefault = function(x) {
             if (!arguments.length) {
@@ -3581,6 +3619,8 @@
                 throw new Error('An element must be specified when running the application.');
             }
 
+            // init container
+
             var appContainer = d3.select(element);
 
             if (displaySelector) {
@@ -3592,6 +3632,8 @@
             var chartsAndOverlayContainer = appContainer.select('#charts');
             var chartsContainer = appContainer.select('#charts-container');
             var overlayContainer = appContainer.select('#overlay');
+
+            // set containers
             containers = {
                 app: appContainer,
                 charts: chartsContainer,
@@ -3613,17 +3655,22 @@
                 }
             };
 
+            // init selector
             if (displaySelector) {
                 headMenu = initialiseHeadMenu();
                 selectors = initialiseSelectors();
             }
+
             navReset = initialiseNavReset();
             overlay = initialiseOverlay();
             toastNotifications = initialiseNotifications();
 
+            //
             updateLayout();
+            // set windows resize event
             initialiseResize();
 
+            // data interface
             _dataInterface(model.headMenu.selectedPeriod.seconds, model.headMenu.selectedProduct);
 
             if (fetchGdaxProducts) {
@@ -3680,10 +3727,9 @@
         // };
 
         //
-        app.changeProduct = function(productString) {
+        app.changeProduct = function(productString, periodString) {
 
             var product;
-
             var existsInOverlayProducts = model.overlay.products.some(function(p) {
                 product = p;
                 return p.id === productString;
@@ -3701,7 +3747,7 @@
                 return app;
             }
 
-            changeProduct(product);
+            changeProduct(product, periodString);
 
             if (!firstRender) {
                 render();
@@ -3729,6 +3775,34 @@
 
         };
 
+        // app.changePeriod = function(productString, periodString) {
+
+
+        //     var product;
+        //     // var existsInOverlayProducts = model.overlay.products.some(function(p) {
+        //     //     product = p;
+        //     //     return p.id === productString;
+        //     // });
+        //     // if (!existsInOverlayProducts) {
+        //     //     // todo:error
+        //     //     return app;
+        //     // }
+        //     var existsInHeadMenuProducts = model.headMenu.products.some(function(p) {
+        //         product = p;
+        //         return p.id === productString;
+        //     });
+        //     if (!existsInHeadMenuProducts) {
+        //         return app;
+        //     }
+
+        //     const period = model.periods[periodString];
+
+        //     updateModelSelectedPeriod(period);
+        //     _dataInterface(period.seconds, product);
+
+        //     return app;
+
+        // };
 
         // ------------------
 

@@ -9,14 +9,51 @@
 	<link rel="stylesheet" href="assets/css/style.css">
 	<!-- Version: Development -->
 
-    <!--<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
-        crossorigin="anonymous">-->
+	<!--
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+        crossorigin="anonymous">
+	-->
 
+	<style>
+        .chart-container {
+          /*width: 500px;*/
+		  height: 500px;
+          margin-left: 40px;
+          margin-right: 40px;
+          margin-bottom: 40px;
+        }
+        
+        .container {
+          /*display: flex;*/
+          flex-direction: row;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+
+	</style>
 </head>
 <body>
-<div id="app-container"></div>
 
-<script src="assets/js/d3fc.bundle.js"></script>
+<div>
+	<select id="selectorProvider"></select>
+	<select id="selectorProducts"></select>
+	<select id="selectorSeries"></select>
+	<select id="selectorIndicator" multiple></select>
+	<select id="selectorPeriod"></select>
+</div>
+<br>
+<div class="container">
+	<div class="chart-container">
+		<div id="app-container"></div>
+	</div>
+</div>
+
+
+<script src="assets/js/d3.js"></script>
+<script src="assets/js/css-layout.js"></script>
+<script src="assets/js/d3-legend.js"></script>
+<script src="assets/js/polyfill.js"></script>
+<script src="assets/js/d3fc.js"></script>
 <script src="assets/js/d3fc-rebind.js"></script>
 <script src="assets/js/d3fc-financial-feed.js"></script>
 <script src="assets/js/jquery.js"></script>
@@ -25,12 +62,13 @@
 
 <script src="assets/js/app.js"></script>
 <script src="//localhost:35729/livereload.js"></script>
+<script src="../samples/localBitcoin.js"></script>
+<script src="selector/js/selector.js"></script>
 <script src="../samples/my.js"></script>
 
 	<!--
     <script src="https://unpkg.com/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
 	-->
-
 
 </body>
 </html>
