@@ -3834,7 +3834,7 @@
 
     // bfapp.indicators([]);
 
-    window.BitFluxS = BitFlux;
+    window.kFX = BitFlux;
 
 })));
 
